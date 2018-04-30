@@ -24,7 +24,7 @@ class Evaluate():
     input is list of all generated keyphrases from corpus
     and true values of keyphrases
     '''
-    def __init__(self, y_pred, true_keyphrase, filepath, **kwargs):
+    def __init__(self, y_pred, true_keyphrase, filepath):
 
         self.y_pred = y_pred
         self.true_keyphrase = true_keyphrase # tokenized y_true (need to be joined)
@@ -56,7 +56,6 @@ class Evaluate():
         self.mean_recall = [] 
         self.mean_fscore = []
 
-        super(Indexing, self).__init__(**kwargs)
 
     '''
     y_true parameter is tokenized version of ground truth keyphrase list

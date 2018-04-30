@@ -21,12 +21,10 @@ import _pickle as cPickle
 class Preprocessing():
 
 	# input here is individual text
-	def __init__(self, input_text, output_keyphrases, filepath, filename):
+	def __init__(self, input_text, output_keyphrases):
 
 		self.inputs = input_text
 		self.outputs = output_keyphrases
-		self.filepath = filepath
-		self.filename = filename
 		kp_unlisted_punct = ['-', '_', '+', '#']
 		self.kp_punct = ''.join([p for p in string.punctuation if p not in kp_unlisted_punct])
 		eof_punc = ['.','?','!',',',';','-','_','+', '#']
@@ -140,4 +138,6 @@ class Preprocessing():
 		self.output_tokens = kps # tokenized keyphrase list (model output)
 
 		return self.inputs_tokens, self.output_tokens
+
+
 
