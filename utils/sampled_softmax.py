@@ -44,9 +44,24 @@ class SamplingLayer(Layer):
             logits = tf.nn.bias_add(logits, self.bias)
             labels_one_hot = tf.one_hot(labels, self.num_classes)
             # loss from cross entropy between y_true and y_pred
+            loss = tf.nn.softmax_cross_entropy_with_logits_v2(
+                labels=labels_one_hot,
+                logits=logits)
+            
+
+        elif self.mode == "perplexity":
+            # return perplexity instead of cross entropy
+            # cross entropy : exp-log(logits) ~= loss (between true distribution and prediction) in dimension of natural number (exp)
+            # perplexity : exp(loss) ~= log(logits) -> logarithmic domain of y_pred / exponential form of loss 
+            logits = tf.matmul(inputs, tf.transpose(self.kernel))
+            logits = tf.nn.bias_add(logits, self.bias)
+            labels_one_hot = tf.one_hot(labels, self.num_classes)
+            # loss from cross entropy between y_true and y_pred
+            
             loss_ce = tf.nn.softmax_cross_entropy_with_logits_v2(
                 labels=labels_one_hot,
                 logits=logits)
+           
             # perplexity loss : exponentiate form of cross entropy
             loss = tf.exp(loss_ce)
 
