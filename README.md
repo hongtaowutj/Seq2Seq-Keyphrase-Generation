@@ -7,7 +7,7 @@ We train Sequence-to-Sequence (Seq2Seq) models on large target vocabulary corpus
 
 One training dataset (**KP20k**), five testing datasets (**KP20k, NUS, SemEval, Krapivin**).
 
-About How to Reproduce
+About how to reproduce
 ======================
 
 This model has been trained on Python 3.6.4 , Keras 2.1.5, and Tensorflow 1.4.1
