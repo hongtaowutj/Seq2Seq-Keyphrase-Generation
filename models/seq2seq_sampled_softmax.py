@@ -17,8 +17,6 @@ from keras.utils import to_categorical
 
 from utils.sampled_softmax import SamplingLayer
 from utils.predict_softmax import PredictionLayer
-from utils.beam_tree import Node
-from utils.evals import Evaluate
 from utils.data_iterator import Dataiterator
 
 import matplotlib
@@ -28,7 +26,7 @@ import matplotlib.pyplot as plt
 
 class SampledSoftmax():
 
-	def __init__(self, encoder_length, decoder_length, embedding_dim, birnn_dim, rnn_dim, vocab_size, num_samples, filepath, batch_iter, batch_size):
+	def __init__(self, encoder_length, decoder_length, embedding_dim, birnn_dim, rnn_dim, vocab_size, num_samples, filepath, batch_iter, batch_size, steps_epoch, epochs):
 
 		self.encoder_length = encoder_length
 		self.decoder_length = decoder_length
@@ -40,6 +38,8 @@ class SampledSoftmax():
 		self.filepath = filepath
 		self.batch_iter = batch_iter
 		self.batch_size = batch_size
+		self.steps_epoch = steps_epoch
+		self.epochs = epochs
 		# for storing trained graph models
 		self.in_encoder = 0
 		self.in_decoder = 0
@@ -125,7 +125,7 @@ class SampledSoftmax():
 
 	def train_(self):
 
-		def gen(self.batch_size):
+		def gen(batch_size):
 
 			while True:
 
@@ -134,9 +134,9 @@ class SampledSoftmax():
 				for batch in batches:
 					yield batch
 	
-		self.history = self.train_model.fit_generator(gen(self.batch_size), steps_per_epoch=steps_epoch, epochs = 10)
+		self.history = self.train_model.fit_generator(gen(self.batch_size), steps_per_epoch=self.steps_epoch, epochs = self.epochs)
 
-		self.train_model.save(os.path.join(self.filepath,'sts_sampled_softmax.h5'))
+		#self.train_model.save(os.path.join(self.filepath,'sts_sampled_softmax.h5'))
 		self.train_model.save_weights(os.path.join(self.filepath,'weights_sts_sampled_softmax.hdf5'))
 
 	def plot_(self):
@@ -147,7 +147,7 @@ class SampledSoftmax():
 		plt.ylabel('loss')
 		plt.xlabel('epoch')
 		plt.legend(['training'], loc='upper right')
-		plt.savefig(os.path.join(self.filepath,'loss_sts_sampled_softmax.png'))
+		plt.savefig(os.path.join(self.filepath,'loss_sts_sampled_softmax_r2.png'))
 
 
 	def eval_sampled_softmax(self):

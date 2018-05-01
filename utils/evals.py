@@ -31,30 +31,30 @@ class Evaluate():
         self.filepath = filepath
         
         self.y_true = []
-        self.max_kp_num = []
-        self.mean_kp_num = []
-        self.std_kp_num = []
+        self.max_kp_num = 0
+        self.mean_kp_num = 0
+        self.std_kp_num = 0
 
-        self.tp = []
+        self.tp = 0
         self.tp_list = []
-        self.fn = []
+        self.fn = 0
         self.fn_list = []
-        self.fp = []
+        self.fp = 0
         self.fp_list = []
 
-        self.mean_tps = [] 
-        self.mean_fns = [] 
-        self.mean_fps = [] 
+        self.mean_tps = 0 
+        self.mean_fns = 0 
+        self.mean_fps = 0 
 
-        self.accuracy= []
-        self.precision = []
-        self.recall = []
-        self.fscore = []
+        self.accuracy= 0
+        self.precision = 0
+        self.recall = 0
+        self.fscore = 0
 
-        self.mean_acc = [] 
-        self.mean_precision = [] 
-        self.mean_recall = [] 
-        self.mean_fscore = []
+        self.mean_acc = 0 
+        self.mean_precision = 0 
+        self.mean_recall = 0 
+        self.mean_fscore = 0
 
 
     '''
@@ -75,7 +75,7 @@ class Evaluate():
 
         self.y_true = all_kps
 
-        return self.y_true # y_true is list of set keyphrases in corpus
+        #return self.y_true # y_true is list of set keyphrases in corpus
 
     def get_stat_keyphrases(self):
 
@@ -87,66 +87,90 @@ class Evaluate():
         self.mean_kp_num = np.mean(np.array(len_kps))
         self.std_kp_num = np.std(np.array(len_kps))
 
-        return self.max_kp_num, self.mean_kp_num, self.std_kp_num
+        #return self.max_kp_num, self.mean_kp_num, self.std_kp_num
 
     def compute_true_positive(self):
 
+        all_tps = []
+        all_tps_list = []
         for i in range(len(self.y_pred)):
             tp_list = list(set(self.y_pred[i]) & set(self.y_true[i]))
-            self.tp_list.append(tp_list)
-            self.tp.append(len(tp_list))
+            all_tps_list.append(tp_list)
+            all_tps.append(len(tp_list))
 
-        return self.tp, self.tp_list # all tps: tp is computed per document in corpus
+        self.tp_list = all_tps_list
+        self.tp = all_tps
+
+        #return self.tp, self.tp_list # all tps: tp is computed per document in corpus
 
     def compute_false_negative(self):
 
+        all_fns = []
+        all_fns_list = []
         for i in range(len(self.y_pred)):
             fn_list = list(set(self.y_true[i]) - set(self.y_pred[i]))
-            self.fn_list.append(fn_list)
-            self.fn.append(len(fn_list))
+            all_fns_list.append(fn_list)
+            all_fns.append(len(fn_list))
 
-        return self.fn, self.fn_list # all fns: tp is computed per document in corpus
+        self.fn_list = all_fns_list
+        self.fn = all_fns
+
+        #return self.fn, self.fn_list # all fns: tp is computed per document in corpus
 
     def compute_false_positive(self):
 
+        all_fps = []
+        all_fps_list = []
         for i in range(len(self.y_pred)):
             fp_list = list(set(self.y_pred[i]) - set(self.y_true[i]))
-            self.fp_list.append(fp_list)
-            self.fp.append(len(fp_list))
+            all_fps_list.append(fp_list)
+            all_fps.append(len(fp_list))
 
-        return self.fp, self.fp_list # all fps: tp is computed per document in corpus
+        self.fp_list = all_fps_list
+        self.fp = all_fps
+
+        #return self.fp, self.fp_list # all fps: tp is computed per document in corpus
 
     def compute_accuracy(self):
 
+        all_acc = []
         for i in range(len(self.tp)):
             accuracy = self.tp[i] / (self.tp[i] + self.fn[i] + self.fp[i])
-            self.accuracy.append(accuracy)
+            all_acc.append(accuracy)
 
-        return self.accuracy
+        self.accuracy = all_acc
+
+        #return self.accuracy
 
     def compute_precision(self):
 
+        all_precision = []
         for i in range(len(self.tp)):        
              precision = self.tp[i] / (self.tp[i] + self.fp[i])
-             self.precision.append(precision)
+             all_precision.append(precision)
 
-        return self.precision
+        self.precision = all_precision
+        #return self.precision
 
     def compute_recall(self):
 
+        all_recall = []
         for i in range(len(self.tp)):
              recall = self.tp[i] / (self.tp[i] + self.fn[i])
-             self.recall.append(recall)
+             all_recall.append(recall)
 
-        return self.recall
+        self.recall = all_recall
+        #return self.recall
 
     def compute_fscore(self, beta=1):
 
+        all_fscore = []
         for i in range(len(self.precision)):
              fscore = (beta**2 + 1) * self.precision[i] * self.recall[i] / (beta * self.precision[i] + self.recall[i])
-             self.fscore.append(fscore)
+             all_fscore.append(fscore)
 
-        return self.fscore
+        self.fscore = all_fscore
+        #return self.fscore
 
     def compute_mean_evals(self):
 
@@ -155,7 +179,7 @@ class Evaluate():
         self.mean_recall = np.mean(np.array(self.recall))
         self.mean_fscore = np.mean(np.array(self.fscore))
 
-        return self.mean_acc, self.mean_precision, self.mean_recall, self.mean_fscore
+        #return self.mean_acc, self.mean_precision, self.mean_recall, self.mean_fscore
 
     def compute_mean_cm(self):
 
@@ -163,7 +187,7 @@ class Evaluate():
         self.mean_fns = np.mean(np.array(self.fn))
         self.mean_fps  = np.mean(np.array(self.fp))
 
-        return self.mean_tps, self.mean_fns, self.mean_fps  
+        #return self.mean_tps, self.mean_fns, self.mean_fps  
 
     def print_mean_evals(self):
 

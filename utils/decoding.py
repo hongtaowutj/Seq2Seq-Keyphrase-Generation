@@ -9,20 +9,20 @@ import numpy as np
 import pandas as pd
 from math import log
 
-from beam_tree import Node
+from utils.beam_tree import Node
 
 
 class Decoding():
 
 	# input here is individual text
-	def __init__(self, encoder_model, decoder_model, indices_words, words_indices, enc_in_seq, dec_in_seq, labels, decoder_length, rnn_dim,  beam_width, filepath):
+	def __init__(self, encoder_model, decoder_model, indices_words, words_indices, enc_in_seq, labels, decoder_length, rnn_dim,  beam_width, filepath):
 
 		self.encoder_model = encoder_model
 		self.decoder_model = decoder_model
 		self.indices_words = indices_words
 		self.words_indices = words_indices
 		self.enc_in_seq = enc_in_seq
-		self.dec_in_seq = dec_in_seq
+		#self.dec_in_seq = dec_in_seq
 		self.labels = labels
 		self.decoder_length = decoder_length
 		self.rnn_dim = rnn_dim
@@ -43,7 +43,8 @@ class Decoding():
 		states_value = self.encoder_model.predict(self.enc_in_seq)
 		
 		target_seq = np.zeros((1, 1))
-		target_seq[0][0] = self.dec_in_seq[0][0]
+		#target_seq[0][0] = self.dec_in_seq[0][0]
+		target_seq[0][0] = int(self.words_indices['<start>'])
 		
 		stop_condition = False
 		start_end_idx = [int(self.words_indices['<start>']), int(self.words_indices['<end>']), int(self.words_indices['<pad>'])]
@@ -52,7 +53,7 @@ class Decoding():
 		
 		for t in range(self.decoder_length+1):
 		  
-			label_t = labels[:,t,:]
+			label_t = self.labels[:,t,:]
 		
 			output_tokens, h = self.decoder_model.predict([target_seq] + [states_value] + [label_t])
 			# Sample a token
@@ -117,13 +118,14 @@ class Decoding():
 
 				if states_value.shape[0] == self.rnn_dim:
 					states_value = states_value.reshape((1, states_value.shape[0]))
-				label_t = labels[:, _, :]
+
+				label_t = self.labels[:, t_, :]
 				predicted_prob, state_t = self.decoder_model.predict([dec_input] + [states_value] + [label_t])
 
 				Y_t = np.argsort(predicted_prob, axis=-1)[-self.beam_width:] # no point in taking more than fits in the beam
 
-				if t_ >= 1:
-					Y_t = [Y_t[-1]]
+				#if t_ >= 1:
+				#	Y_t = [Y_t[-1]]
 
 				probs.append(predicted_prob)
 				states.append(state_t)
@@ -151,7 +153,7 @@ class Decoding():
 
 		hypotheses.sort(key=lambda n: n.cum_cost)
 
-		self.hypotheses = hypotheses
+		self.hypotheses = hypotheses[:self.num_hypotheses]
 
 		return self.hypotheses
 

@@ -12,7 +12,9 @@ from utils.indexing import Indexing
 from utils.data_connector import DataConnector
 
 
-
+'''
+For KP20K data set
+'''
 
 def preprocessing_train(params):
 
@@ -52,6 +54,9 @@ def preprocessing_train(params):
 	train_tokens_connector.save_pickle()
 
 
+'''
+For KP20K data set
+'''
 
 def preprocessing_valid(params):
 
@@ -90,6 +95,10 @@ def preprocessing_valid(params):
 	valid_tokens_connector = DataConnector(data_path, 'valid_tokens.pkl', valid_tokens)
 	valid_tokens_connector.save_pickle()
 
+
+'''
+For KP20K data set
+'''
 def preprocessing_test(params):
 
 	data_path = params['data_path']
@@ -203,7 +212,7 @@ def transform_train(params):
 	train_kp_y_in = []
 	train_kp_y_out = []
 
-	for i, (in_text, out_text) in enumerate(zip(train_in_tokens, train_out_tokens)):
+	for i, in_text in enumerate(train_in_tokens):
 
 		len_in_text = len(in_text)
 		if len_in_text > encoder_length:
@@ -217,6 +226,8 @@ def transform_train(params):
 			# OOV (unknown words)
 			else: 
 				X_train[i, t] = words_indices['<unk>']
+
+	for i, out_text in enumerate(train_out_tokens):
 
 		kp_y_in = []
 		kp_y_out = []
@@ -304,7 +315,7 @@ def transform_valid(params):
 	valid_kp_y_in = []
 	valid_kp_y_out = []
 
-	for i, (in_text, out_text) in enumerate(zip(valid_in_tokens, valid_out_tokens)):
+	for i, in_text in enumerate(valid_in_tokens):
 
 		len_in_text = len(in_text)
 		if len_in_text > encoder_length:
@@ -319,10 +330,12 @@ def transform_valid(params):
 			else: 
 				X_valid[i, t] = words_indices['<unk>']
 
+	for i, out_text in enumerate(valid_out_tokens):
+
 		kp_y_in = []
 		kp_y_out = []
 
-		for kp in keys:
+		for kp in out_text:
 
 			y_in = np.zeros((1, decoder_length+1), dtype=np.int32) 
 			y_out = np.zeros((1, decoder_length+1), dtype=np.int32) 
@@ -386,6 +399,8 @@ def transform_test(params):
 	vocab.read_pickle()
 	indices_words = vocab.read_file
 
+	print("\nvocabulary size: %s\n"%(len(indices_words)))
+
 	reversed_vocab = DataConnector(data_path, 'words_indices.pkl', data=None)
 	reversed_vocab.read_pickle()
 	words_indices = reversed_vocab.read_file
@@ -406,7 +421,7 @@ def transform_test(params):
 	test_kp_y_in = []
 	test_kp_y_out = []
 
-	for i, (in_text, out_text) in enumerate(zip(test_in_tokens, test_out_tokens)):
+	for i, in_text in enumerate(test_in_tokens):
 
 		len_in_text = len(in_text)
 		if len_in_text > encoder_length:
@@ -421,10 +436,12 @@ def transform_test(params):
 			else: 
 				X_test[i, t] = words_indices['<unk>']
 
+	for i, out_text in enumerate(test_out_tokens):
+
 		kp_y_in = []
 		kp_y_out = []
 
-		for kp in keys:
+		for kp in out_text:
 
 			y_in = np.zeros((1, decoder_length+1), dtype=np.int32) 
 			y_out = np.zeros((1, decoder_length+1), dtype=np.int32) 
@@ -505,7 +522,9 @@ def pair_train(params):
 
 	x_pair_train = np.array(x_pair_train)
 	y_pair_train_in = np.array(y_pair_train_in)
+	y_pair_train_in = y_pair_train_in.reshape((y_pair_train_in.shape[0], y_pair_train_in.shape[2]))
 	y_pair_train_out = np.array(y_pair_train_out)
+	y_pair_train_out = y_pair_train_out.reshape((y_pair_train_out.shape[0], y_pair_train_out.shape[2]))
 
 	x_in_connector = DataConnector(data_path, 'x_pair_train.pkl', x_pair_train)
 	x_in_connector.save_pickle()
@@ -548,11 +567,59 @@ def pair_valid(params):
 
 	x_pair_valid = np.array(x_pair_valid)
 	y_pair_valid_in = np.array(y_pair_valid_in)
+	y_pair_valid_in = y_pair_valid_in.reshape((y_pair_valid_in.shape[0], y_pair_valid_in.shape[2]))
 	y_pair_valid_out = np.array(y_pair_valid_out)
+	y_pair_valid_out = y_pair_valid_out.reshape((y_pair_valid_out.shape[0], y_pair_valid_out.shape[2]))
 
 	x_in_connector = DataConnector(data_path, 'x_pair_valid.pkl', x_pair_valid)
 	x_in_connector.save_pickle()
 	y_in_connector = DataConnector(data_path, 'y_pair_valid_in.pkl', y_pair_valid_in)
 	y_in_connector.save_pickle()
 	y_out_connector = DataConnector(data_path, 'y_pair_valid_out.pkl', y_pair_valid_out)
+	y_out_connector.save_pickle()
+
+def pair_test(params):
+
+	data_path = params['data_path']
+
+	'''
+	read test set
+
+	'''
+	X_test_connector = DataConnector(data_path, 'X_test.pkl', data=None)
+	X_test_connector.read_pickle()
+	X_test = X_test_connector.read_file
+
+	y_test_in_connector = DataConnector(data_path, 'y_test_in.pkl', data=None)
+	y_test_in_connector.read_pickle()
+	y_test_in = y_test_in_connector.read_file
+
+	y_test_out_connector = DataConnector(data_path, 'y_test_out.pkl', data=None)
+	y_test_out_connector.read_pickle()
+	y_test_out = y_test_out_connector.read_file
+
+	docid_pair_test = []
+	x_pair_test = []
+	y_pair_test_in = []
+	y_pair_test_out = []
+
+	for i, (y_in, y_out) in enumerate(zip(y_test_in, y_test_out)):
+		for j in range(len(y_in)):
+			docid_pair_test.append(i)
+			x_pair_test.append(X_test[i])
+			y_pair_test_in.append(y_in[j])
+			y_pair_test_out.append(y_out[j])
+
+	x_pair_test = np.array(x_pair_test)
+	y_pair_test_in = np.array(y_pair_test_in)
+	y_pair_test_in = y_pair_test_in.reshape((y_pair_test_in.shape[0], y_pair_test_in.shape[2]))
+	y_pair_test_out = np.array(y_pair_test_out)
+	y_pair_test_out = y_pair_test_out.reshape((y_pair_test_out.shape[0], y_pair_test_out.shape[2]))
+
+	
+	x_in_connector = DataConnector(data_path, 'x_pair_test.pkl', x_pair_test)
+	x_in_connector.save_pickle()
+	y_in_connector = DataConnector(data_path, 'y_pair_test_in.pkl', y_pair_test_in)
+	y_in_connector.save_pickle()
+	y_out_connector = DataConnector(data_path, 'y_pair_test_out.pkl', y_pair_test_out)
 	y_out_connector.save_pickle()

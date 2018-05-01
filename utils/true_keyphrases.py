@@ -21,44 +21,42 @@ class TrueKeyphrases():
 
 	def __init__(self, true_keyphrase):
 
-        self.y_pred = y_pred
-        self.true_keyphrase = true_keyphrase # tokenized y_true (need to be joined)
-        self.filepath = filepath
-        
-        self.y_true = []
-        self.max_kp_num = []
-        self.mean_kp_num = []
-        self.std_kp_num = []
+		self.true_keyphrase = true_keyphrase # tokenized y_true (need to be joined)
+		
+		self.y_true = []
+		self.max_kp_num = []
+		self.mean_kp_num = []
+		self.std_kp_num = []
 
 
-    '''
-    y_true parameter is tokenized version of ground truth keyphrase list
-    need to transform it back to its original keyphrase form
+	'''
+	y_true parameter is tokenized version of ground truth keyphrase list
+	need to transform it back to its original keyphrase form
 
-    '''
-    def get_true_keyphrases(self):
+	'''
+	def get_true_keyphrases(self):
 
-        all_kps = []
-        # for each set of keyphrases given text inputs
-        for kp_list in self.true_keyphrase:
-            kps = []
-            for tokenized_kp in kp_list:
-                kp = " ".join(tokenized_kp)
-                kps.append(kp)
-            all_kps.append(kps)
+		all_kps = []
+		# for each set of keyphrases given text inputs
+		for kp_list in self.true_keyphrase:
+			kps = []
+			for tokenized_kp in kp_list:
+				kp = " ".join(tokenized_kp)
+				kps.append(kp)
+			all_kps.append(kps)
 
-        self.y_true = all_kps
+		self.y_true = all_kps
 
-        return self.y_true # y_true is list of set keyphrases in corpus
+		return self.y_true # y_true is list of set keyphrases in corpus
 
-    def get_stat_keyphrases(self):
+	def get_stat_keyphrases(self):
 
-        len_kps = []
-        for kps_list in self.y_true:
-            len_kps.append(len(kps_list))
+		len_kps = []
+		for kps_list in self.y_true:
+			len_kps.append(len(kps_list))
 
-        self.max_kp_num = max(len_kps)
-        self.mean_kp_num = np.mean(np.array(len_kps))
-        self.std_kp_num = np.std(np.array(len_kps))
+		self.max_kp_num = max(len_kps)
+		self.mean_kp_num = np.mean(np.array(len_kps))
+		self.std_kp_num = np.std(np.array(len_kps))
 
-        return self.max_kp_num, self.mean_kp_num, self.std_kp_num
+		return self.max_kp_num, self.mean_kp_num, self.std_kp_num

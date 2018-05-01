@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 from math import log
 
-from beam_tree import Node
+from utils.beam_tree import Node
 
 
 class BeamDecoded():
