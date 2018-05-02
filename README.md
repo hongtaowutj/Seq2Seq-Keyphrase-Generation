@@ -5,7 +5,7 @@ Introduction
 
 We train Sequence-to-Sequence (Seq2Seq) models on large target vocabulary corpus to generate multiple keyphrase-based topics of documents. The data being used to train the model are:
 
-One training dataset (**KP20k**), five testing datasets (**KP20k, NUS, SemEval, Krapivin**).
+One training dataset (**KP20k**), four testing datasets (**KP20k, NUS, SemEval, Krapivin**).
 
 About how to reproduce
 ======================
