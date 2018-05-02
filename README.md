@@ -10,7 +10,7 @@ One training dataset (**KP20k**), four testing datasets (**KP20k, NUS, SemEval, 
 About how to reproduce
 ======================
 
-This model has been trained on Python 3.6.4 , Keras 2.1.5, and Tensorflow 1.4.1
+This model has been trained on Ubuntu 16.04.4, Python 3.6.4 , Keras 2.1.5, and Tensorflow 1.4.1
 
 Information about directory and files:
 
