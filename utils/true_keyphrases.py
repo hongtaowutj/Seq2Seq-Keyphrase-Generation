@@ -52,8 +52,16 @@ class TrueKeyphrases():
 	def get_stat_keyphrases(self):
 
 		len_kps = []
+		idx = 0
 		for kps_list in self.y_true:
 			len_kps.append(len(kps_list))
+
+			if (len(kps_list)) > 50:
+				print("index: %s"%idx)
+				print("length: %s"%(len(kps_list)))
+				print("kps_list: %s"%kps_list)
+				sys.stdout.flush()
+			idx += 1
 
 		self.max_kp_num = max(len_kps)
 		self.mean_kp_num = np.mean(np.array(len_kps))

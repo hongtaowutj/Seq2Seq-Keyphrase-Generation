@@ -27,6 +27,7 @@ class SequenceProcessing():
 		self.out_texts = None
 		self.indices_words = indices_words
 		self.words_indices = words_indices
+		self.num_words = 0
 		self.x_in = None
 		self.y_in = None
 		self.y_out = None
@@ -48,6 +49,7 @@ class SequenceProcessing():
 			A list of sequences.
 		"""
 		self.in_texts = in_texts # list of tokenized texts
+		self.num_words = len(self.indices_words)
 
 		res = []
 		for vect in self.intexts_to_integers_generator():
@@ -71,39 +73,27 @@ class SequenceProcessing():
 		# Yields
 			Yields individual sequences.
 		"""
+		for text in self.in_texts:
 
-		
-
-		for i, text in enumerate(self.in_texts):
-
-			'''
-
-			print("Processing text input - %s....\n"%i)
-			sys.stdout.flush()
-			'''
 
 			if len(text) > self.encoder_length:
 				seq = text[:self.encoder_length]
 			else:
 				seq = text
 
-			'''
-			print("Original text sequence - %s : %s"%(i, seq))
-			sys.stdout.flush()
-			'''
+			integers_vector = []
 
-			integers_vector = np.zeros((1, self.encoder_length), dtype=np.int32)
-
-			for Tx, word in enumerate(seq):
-				if word not in self.indices_words.values():
-					 integers_vector[0,Tx] = self.words_indices['<unk>']
+			for word in seq:
+				idx = self.words_indices[word]
+				if idx != None:
+					if self.num_words and idx >= self.num_words:
+						continue
+					else:
+						integers_vector.append(idx) 
 				else:
-					integers_vector[0,Tx] = self.words_indices[word]
-
-			'''
-			print("Integer text sequence - %s : %s\n"%(i, integers_vector))
-			sys.stdout.flush()
-			'''
+					idx = self.words_indices['<unk>']
+					if idx != None:
+						integers_vector.append(idx) 
 
 			yield integers_vector
 
@@ -124,12 +114,15 @@ class SequenceProcessing():
 		"""
 
 		self.out_texts = out_texts
+		self.num_words = len(self.indices_words)
 
 		res_in = []
 		res_out = []
+		
 		for (keyphrase_in, keyphrase_out) in self.outtexts_to_integers_generator():
 			res_in.append(keyphrase_in)
 			res_out.append(keyphrase_out)
+
 		return res_in, res_out
 
 
@@ -147,27 +140,12 @@ class SequenceProcessing():
 		"""
 
 
-		for i, keyphrase_list in enumerate(self.out_texts):
-
-			'''
-
-			print("Processing text output - %s....\n"%i)
-			sys.stdout.flush()
-
-			print("\n%s\n"%(keyphrase_list))
-			sys.stdout.flush()
-			'''
+		for keyphrase_list in self.out_texts:
 
 			keyphrase_in = []
 			keyphrase_out = []
 
-			for j, text in enumerate(keyphrase_list):
-
-				'''
-
-				print("\n%s\n"%(text))
-				sys.stdout.flush()
-				'''
+			for text in keyphrase_list:
 
 				if len(text) > self.decoder_length:
 					seq = text[:self.decoder_length]
@@ -179,101 +157,118 @@ class SequenceProcessing():
 				txt_in.insert(0,'<start>')
 				txt_out.append('<end>')
 
-				'''
+				integers_vector_in = []
+				integers_vector_out = []
 
-				print("Original decoder input sequence - %s, %s : %s"%(i, j, txt_in))
-				sys.stdout.flush()
+				for word in txt_in:
 
-				print("Original decoder output sequence - %s, %s : %s"%(i, j, txt_out))
-				sys.stdout.flush()
-				'''
-
-				y_in = np.zeros((1, self.decoder_length+1), dtype=np.int32)
-				y_out = np.zeros((1, self.decoder_length+1), dtype=np.int32)
-
-				for Ty, word in enumerate(txt_in):
-					if word not in self.indices_words.values():
-						 y_in[0,Ty] = self.words_indices['<unk>']
+					idx =  self.words_indices[word]
+					if idx != None:
+						if self.num_words and idx >= self.num_words:
+							continue
+						else:
+							integers_vector_in.append(idx) 
 					else:
-						y_in[0,Ty] = self.words_indices[word]
+						idx = self.words_indices['<unk>']
+						if idx != None:
+							integers_vector_in.append(idx)
 
-				for Ty, word in enumerate(txt_out):
-					if word not in self.indices_words.values():
-						 y_out[0,Ty] = self.words_indices['<unk>']
+
+				for word in txt_out:
+
+					idx = self.words_indices[word]
+					if idx != None:
+						if self.num_words and idx >= self.num_words:
+							continue
+						else:
+							integers_vector_out.append(idx) 
 					else:
-						y_out[0,Ty] = self.words_indices[word]
+						idx = self.words_indices['<unk>']
+						if idx != None:
+							integers_vector_out.append(idx)
 
-				'''
-				print("integer decoder input sequence - %s, %s : %s"%(i, j, y_in))
-				sys.stdout.flush()
-
-				print("integer decoder output sequence - %s, %s : %s"%(i, j, y_out))
-				sys.stdout.flush()
-				'''
-
-				keyphrase_in.append(y_in)
-				keyphrase_out.append(y_out)
-
-			'''
-			print("integer list decoder input sequences - %s : %s"%(i, keyphrase_in))
-			sys.stdout.flush()
-
-			print("integer list decoder output sequences - %s : %s"%(i, keyphrase_out))
-			sys.stdout.flush()
-			'''
+				keyphrase_in.append(integers_vector_in)
+				keyphrase_out.append(integers_vector_out)
 
 			yield keyphrase_in, keyphrase_out
 
-
-	def pairing_data(self, x_in=None, y_in=None, y_out=None):
+	
+	def pairing_data_(self, x_in=None, y_in=None, y_out=None):
 
 		self.x_in = x_in
 		self.y_in = y_in
 		self.y_out = y_out
 
 		docid_pair = []
-		x_pair = []
 		y_pair_in = []
 		y_pair_out = []
 
+		# count number of key phrases per document
+		len_y = []
+		for y_in_list in self.y_in:
+			len_y.append(len(y_in_list))
+
+		x_pair = np.repeat(self.x_in, len_y, axis=0)
+
 		for (docid_pair_, x_pair_, y_pair_in_, y_pair_out_) in self.pair_generator():
 			docid_pair.append(docid_pair_)
-			x_pair.append(x_pair_)
 			y_pair_in.append(y_pair_in_)
 			y_pair_out.append(y_pair_out_)
 
 		return docid_pair, x_pair, y_pair_in, y_pair_out
 
-
-	def pair_generator(self):
+	
+	def pair_generator_(self):
 
 		for i, (y_in_, y_out_) in enumerate(zip(self.y_in, self.y_out)):
-
-			'''
-
-			print("Pairing data generator - %s....\n"%i)
-			sys.stdout.flush()
-
-			print("y_in_ - %s: %s\n"%(i, y_in_))
-			sys.stdout.flush()
-
-			print("y_out_ - %s: %s\n"%(i, y_out_))
-			sys.stdout.flush()
-			'''
-
+		
 			for j in range(len(y_in_)):
 
-				'''
-
-				print("Pairing data generator - (%s, %s)\n"%(i,j))
-				sys.stdout.flush()
-				'''
-
 				docid_pair = i
-				x_pair = self.x_in[i]
 				y_pair_in = y_in_[j]
 				y_pair_out = y_out_[j]
 
-				yield docid_pair, x_pair, y_pair_in, y_pair_out
+				yield docid_pair, y_pair_in, y_pair_out
+
+	def compute_presence_gen(self):
+
+
+
+		for i in range(len(self.out_texts)):
+
+			out_texts_i = sum(self.out_texts[i], [])
+
+			n_outtext = len(set(out_texts_i))
+
+			presence_list = set(out_texts_i) & set(self.in_texts[i])
+			n_presence = len(presence_list)
+
+			absence_list = set(out_texts_i) - set(self.in_texts[i])
+			n_absence = len(absence_list)
+
+			if i<5:
+				print("n_outtext: %s"%n_outtext)
+				print("n_presence: %s"%n_presence)
+				print("n_absence: %s"%n_absence)
+
+			yield n_presence, n_absence
+
+	def compute_presence(self, input_tokens=None, output_tokens=None):
+
+		self.in_texts = input_tokens
+		self.out_texts = output_tokens
+
+		all_npresence = []
+		all_nabsence = []
+
+		for (n_presence, n_absence) in self.compute_presence_gen():
+
+			all_npresence.append(n_presence)
+			all_nabsence.append(n_absence)
+
+		return all_npresence, all_nabsence
+
+
+
 
 

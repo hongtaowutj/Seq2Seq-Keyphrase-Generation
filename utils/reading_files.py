@@ -252,6 +252,147 @@ class ReadingFiles():
         self.all_articles = all_docs
 
     '''
+    For Semeval 2010
+    '''
+    def reading_semeval(self):
+
+        # dictionary to store filepath of text documents and their keyphrases  
+        path_txt = {}
+        path_keyphrases = {}
+
+        def get_file_infos(filepath):
+    
+            nameoffile = os.path.basename(filepath)
+            fileName, fileExtension = os.path.splitext(nameoffile)
+
+            #print("fileName:%s"%fileName)
+            #sys.stdout.flush()
+
+            #print("filepath:%s"%filepath)
+            #sys.stdout.flush()
+        
+            if fileExtension == '.txt':
+                path_txt[fileName] = filepath
+            elif fileExtension == '.key':
+                path_keyphrases[fileName] = filepath
+
+        # assigning / storing filepath information
+        for i, nof in enumerate(self.filenames):
+            #print("nof:%s"%nof)
+            #sys.stdout.flush()
+            get_file_infos(nof)
+
+        def cleaning(text):
+
+            text = re.sub(r'https?:\/\/\S+\b|www\.(\w+\.)+\S*', '<URL>', text)
+            text = re.sub(r'/', ' / ', text) # Force splitting words appended with slashes (once we tokenized the URLs, of course)
+            text = re.sub(r'@\w+', '<USER>', text)
+            text = re.sub(r'[-+]?[.\d]*[\d]+[:,.\d]*', "", text) # eliminate numbers
+            text = re.sub(r'([!?.]){2,}', r'\1 <REPEAT>', text) # Mark punctuation repetitions (eg. "!!!" => "! <REPEAT>")
+            text = re.sub(r'[^\x00-\x7f]', '', text) # encoded characters
+            punct_list = str.maketrans({key: None for key in self.input_punct})
+            text = text.translate(punct_list)
+            text = re.sub(r'[\-\_\.\?]+\ *', ' ', text)
+            text = text.replace('\n', '')
+            text = text.lstrip().rstrip()
+            text = text.lower()
+            
+            return text
+
+        def reading(filename):
+
+            textTitle = ""
+            textAbstract = ""
+            textMain = ""
+            line_abstract = 0
+            line_intro = 0
+            line_ref = 0
+            line_ack = 0
+
+            with open(filename, encoding="utf8", errors='ignore') as f:
+
+                for i,line in enumerate(f):
+                    if line.strip().lower() == "abstract":
+                        line_abstract = i
+                    if "introduction" in list(line.strip().lower().split()):
+                        line_intro = i
+                    if "references" in list(line.strip().lower().split()):
+                        line_ref = i
+                    if "acknowledgements" in list(line.strip().lower().split()):
+                        line_ack = i 
+
+            # retrieving text from the following sections of an article:
+            # - title
+            # - abstract
+            # - main content (introduction, etc.. beside acknowledgement and references)
+
+            with open(filename, encoding="utf8", errors='ignore') as f:
+                
+                for i,line in enumerate(f):
+                    # retrieve title
+                    if (i == 0):
+                        txt = cleaning(line)
+
+                        print("filename: %s"%filename)
+                        print("i : %s"%(i))
+                        print("title line : %s"%(line))
+
+                        sys.stdout.flush()
+
+                        if(len(txt) != 0):
+                            textTitle = txt + ". "
+
+                    # retrieve text from abstract
+                    if (i > line_abstract) and (i < line_intro):
+                        txt = cleaning(line)
+                        if(len(txt) != 0):
+                            textAbstract +=  txt + " "
+                    # retrieve text from introduction section to acknowledgement (if this section exists)
+                    if (line_ack != 0):
+                        if (i > line_intro) and (i < line_ack):   
+                            txt = cleaning(line)
+                            if(len(txt) != 0):
+                                textMain +=  txt + " "
+                    # retrieve text from introduction section to references
+                    else:
+                        if (i > line_intro) and (i < line_ref):   
+                            txt = cleaning(line) 
+                            if(len(txt) != 0):
+                                textMain +=   txt + " "
+
+
+            return textTitle, textAbstract, textMain
+
+        def read_keyphrases(filepath):
+
+            keyphrases = set()      
+            with open(filepath, encoding="utf8", errors='ignore') as f:
+                for i, line in enumerate(f):
+                    kp = cleaning(line)
+                    if kp not in keyphrases:
+                        keyphrases.add(kp)          
+            return list(keyphrases)
+
+        all_docs = OrderedDict()
+        for k,v in path_txt.items():
+            docid = k
+            path = v
+            textTitle, textAbstract, textMain = reading(path)
+            all_docs[docid] = [textTitle, textAbstract, textMain]
+
+        self.all_articles = all_docs
+
+        all_keyphrases = OrderedDict()
+
+        for k,v in path_keyphrases.items():
+            docid = k
+            path = v
+            kp_set = read_keyphrases(path)
+            all_keyphrases[docid] = kp_set
+
+        self.keyphrases = all_keyphrases
+
+    '''
     For DATA: Krapivin
     '''
 
@@ -383,10 +524,143 @@ class ReadingFiles():
             docid = int(k)
             path = v
             kp_set = read_keyphrases(path)
-            all_keyphrases[docid] = [kp_set]
+            all_keyphrases[docid] = kp_set
 
         self.keyphrases = all_keyphrases
 
+    '''
+    For DATA: Inspec (Hulth, 2003)
+    '''
+
+    def reading_inspec(self):
+
+        # dictionary to store filepath of text documents and their keyphrases
+
+        path_txt = {}
+        path_contr_keyphrases = {}
+        path_uncontr_keyphrases = {}
+
+        def get_file_infos(filepath):
+    
+            nameoffile = os.path.basename(filepath)
+            fileName, fileExtension = os.path.splitext(nameoffile)
+        
+            if fileExtension == '.abstr':
+                path_txt[int(fileName)] = filepath
+
+            elif fileExtension == '.contr':
+                path_contr_keyphrases[int(fileName)] = filepath
+
+            elif fileExtension == '.uncontr':
+                path_uncontr_keyphrases[int(fileName)] = filepath
+
+        # assigning / storing filepath information
+        for i, nof in enumerate(self.filenames):
+            get_file_infos(nof)
+
+        def cleaning(text):
+
+            text = re.sub(r'https?:\/\/\S+\b|www\.(\w+\.)+\S*', '<URL>', text)
+            text = re.sub(r'/', ' / ', text) # Force splitting words appended with slashes (once we tokenized the URLs, of course)
+            text = re.sub(r'@\w+', '<USER>', text)
+            text = re.sub(r'[-+]?[.\d]*[\d]+[:,.\d]*', "", text) # eliminate numbers
+            text = re.sub(r'([!?.]){2,}', r'\1 <REPEAT>', text) # Mark punctuation repetitions (eg. "!!!" => "! <REPEAT>")
+            text = re.sub(r'[^\x00-\x7f]', '', text) # encoded characters
+            punct_list = str.maketrans({key: None for key in self.input_punct})
+            text = text.translate(punct_list)
+            text = re.sub(r'[\-\_\.\?]+\ *', ' ', text)
+            text = text.replace('\n', '')
+            text = text.lstrip().rstrip()
+            text = text.lower()
+            
+            return text
+
+        def reading(filename):
+
+
+            textTitle = ""
+            textAbstract = ""
+            line_title = 0
+            line_abstract = 0
+
+            with open(filename, encoding="utf8", errors='ignore') as f:
+
+                for i,line in enumerate(f):
+            
+                    if re.match(r'[ \t]', line):
+                        continue
+                    else:
+                        line_abstract = i
+
+            with open(filename, encoding="utf8", errors='ignore') as f:
+                
+                for i,line in enumerate(f):
+                    
+                    # retrieve title
+                    if (i >= 0) and (i < line_abstract):
+                        txt = cleaning(line)
+                        if(len(txt) != 0):
+                            textTitle += txt + " "
+
+                    # retrieve text from abstract
+                    if (i >= line_abstract):
+                        txt = cleaning(line)
+                        if(len(txt) != 0):
+                            textAbstract +=  txt + " "
+                    
+
+            return textTitle, textAbstract
+
+        def read_keyphrases(filepath):
+
+            keyphrases = set()      
+            with open(filepath, encoding="utf8", errors='ignore') as f:
+                for i, line in enumerate(f):
+                    kp = cleaning(line)
+                    kps = kp.split(';')
+                    for phrase in kps:
+                        phrase = phrase.lstrip().rstrip()
+                        if (phrase not in keyphrases) and (len(phrase) != 0):
+                            keyphrases.add(phrase)          
+            return list(keyphrases)
+
+        # to store raw text being read
+        all_docs = OrderedDict()
+    
+        for k,v in path_txt.items():
+            docid = int(k)
+            path = v
+            textTitle, textAbstract = reading(path)
+            all_docs[docid] = [textTitle, textAbstract]
+
+        self.all_articles = all_docs
+
+        all_contr_keyphrases = OrderedDict()
+
+        for k,v in path_contr_keyphrases.items():
+            docid = int(k)
+            path = v
+            kp_set = read_keyphrases(path)
+            all_contr_keyphrases[docid] = kp_set
+
+        all_uncontr_keyphrases = OrderedDict()
+
+        for k,v in path_uncontr_keyphrases.items():
+            docid = int(k)
+            path = v
+            kp_set = read_keyphrases(path)
+            all_uncontr_keyphrases[docid] = kp_set
+
+        # merge 2 types of keyphrase list from raw data
+        all_keyphrases = {}
+        for k,v in all_contr_keyphrases.items():
+            kps_1 = v
+            kps_2 = all_uncontr_keyphrases[k]
+            kps = kps_1 + kps_2
+            set_kp = set(kps)
+            all_keyphrases[k] = list(set_kp)
+
+        self.keyphrases = all_keyphrases
 
 
     '''
@@ -404,6 +678,16 @@ class ReadingFiles():
 
         self.all_doc_keyphrases = doc_topics
 
+    def merging_inspec(self):
+
+        doc_topics = OrderedDict()
+        for k,v in self.all_articles.items():
+            title = v[0]
+            abstract = v[1]
+            topics = self.keyphrases[k]
+            doc_topics[k] = [title, abstract, topics]
+
+        self.all_doc_keyphrases = doc_topics
 
     def save_files(self):
 

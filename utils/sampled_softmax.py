@@ -34,6 +34,7 @@ class SamplingLayer(Layer):
                 inputs=inputs,
                 num_sampled=self.num_sampled,
                 num_classes=self.num_classes,
+                partition_strategy="div",
                 num_true=1)
 
         elif self.mode == "eval":
@@ -63,8 +64,8 @@ class SamplingLayer(Layer):
                 logits=logits)
            
             # perplexity loss : exponentiate form of cross entropy
-            #loss = tf.exp(tf.reduce_mean(loss_ce))
-            loss = tf.exp(loss_ce)
+            loss = tf.exp(tf.reduce_mean(loss_ce))
+            #loss = tf.exp(loss_ce)
 
         return loss
 

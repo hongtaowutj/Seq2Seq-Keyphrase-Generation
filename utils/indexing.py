@@ -16,6 +16,9 @@ nltk.data.path.append('/home/TUE/inimah/nltk_data')
 sno = nltk.stem.SnowballStemmer('english')
 from nltk.corpus import stopwords
 import _pickle as cPickle
+import matplotlib
+matplotlib.use('agg')
+import matplotlib.pyplot as plt
 
 
 class Indexing():
@@ -44,8 +47,33 @@ class Indexing():
 
         return self.term_freq, self.indices_words, self.words_indices
 
+    def zipf_plot(self):
+
+        counts = list(self.term_freq.values())
+        tokens = list(self.term_freq.keys())
+
+        ranks = np.arange(1, len(counts)+1)
+        indices = np.argsort(-counts)
+        frequencies = counts[indices]
+
+        plt.clf()
+        plt.loglog(ranks, frequencies, marker=".")
+        plt.title("Zipf plot")
+        plt.xlabel("Frequency rank of token")
+        plt.ylabel("Absolute frequency of token")
+        plt.grid(True)
+        for n in list(np.logspace(-0.5, np.log10(len(counts)), 20).astype(int)):
+            dummy = plt.text(ranks[n], frequencies[n], " " + tokens[indices[n]], 
+                         verticalalignment="bottom",
+                         horizontalalignment="left")
+
+        plt.savefig(os.path.join(self.filepath,'zipf_plot.png'))
+
+
+
     def save_files(self):
 
+        
         def saving_pickles(data, filename):
 
             f = open(filename, 'wb')

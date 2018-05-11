@@ -44,13 +44,13 @@ class Preprocessing():
 			text_in = re.sub(r'https?:\/\/\S+\b|www\.(\w+\.)+\S*', '<URL>', text_in)
 			text_in = re.sub(r'/', ' / ', text_in) # Force splitting words appended with slashes (once we tokenized the URLs, of course)
 			text_in = re.sub(r'@\w+', '<USER>', text_in)
-			text_in = re.sub(r'[-+]?[.\d]*[\d]+[:,.\d]*', "", text_in) # eliminate numbers
+			text_in = re.sub(r'[-+]?[.\d]*[\d]+[:,.\d]*', ' ', text_in) # eliminate numbers
 			text_in = re.sub(r'([!?.]){2,}', r'\1 <REPEAT>', text_in) # Mark punctuation repetitions (eg. "!!!" => "! <REPEAT>")
-			text_in = re.sub(r'[^\x00-\x7f]', '', text_in) # encoded characters
+			text_in = re.sub(r'[^\x00-\x7f]', ' ', text_in) # encoded characters
 			punct_list = str.maketrans({key: None for key in self.input_punct})
 			text_in = text_in.translate(punct_list)
-			text_in = re.sub(r'[\-\_\.\?]+\ *', ' ', text_in)
-			text_in = text_in.replace('\n', '')
+			text_in = re.sub(r'[\-\_\.\?\:\;]+\ *', ' ', text_in)
+			text_in = text_in.replace('\n', ' ')
 			text_in = text_in.lstrip().rstrip()
 			text_in = text_in.lower()
 
@@ -68,6 +68,12 @@ class Preprocessing():
 		print("prep_inputs[0] : %s"%(prep_inputs[0]))
 		sys.stdout.flush()
 
+		print("prep_inputs[1] : %s"%(prep_inputs[1]))
+		sys.stdout.flush()
+
+		print("prep_inputs[2] : %s"%(prep_inputs[2]))
+		sys.stdout.flush()
+
 		return prep_inputs
 
 
@@ -81,19 +87,23 @@ class Preprocessing():
 				kp = re.sub(r'https?:\/\/\S+\b|www\.(\w+\.)+\S*', '<URL>', kp)
 				kp = re.sub(r'/', ' / ', kp) # Force splitting words appended with slashes (once we tokenized the URLs, of course)
 				kp = re.sub(r'@\w+', '<USER>', kp)
-				kp = re.sub(r'[-+]?[.\d]*[\d]+[:,.\d]*', "", kp) # eliminate numbers
+				kp = re.sub(r'[-+]?[.\d]*[\d]+[:,.\d]*', ' ', kp) # eliminate numbers
 				kp = re.sub(r'([!?.]){2,}', r'\1 <REPEAT>', kp) # Mark punctuation repetitions (eg. "!!!" => "! <REPEAT>")
-				kp = re.sub(r'[^\x00-\x7f]', '', kp) # encoded characters
+				kp = re.sub(r'[^\x00-\x7f]', ' ', kp) # encoded characters
 				punct_list = str.maketrans({key: None for key in self.input_punct})
 				kp = kp.translate(punct_list)
-				kp = re.sub(r'[\-\_\.\?]+\ *', ' ', kp)
-				kp = kp.replace('\n', '')
+				kp = re.sub(r'[\-\_\.\?\:\;]+\ *', ' ', kp)
+				kp = kp.replace('\n', ' ')
 				kp = kp.lstrip().rstrip()
 				kp = kp.lower()
+				# only for preprocessing output sequences (key phrase)
+				# e.g. avoiding to remove 'c++', 'c#'
 				regex = re.compile('[%s]' % re.escape(self.kp_punct))
-				kp = regex.sub('', kp)
+				kp = regex.sub(' ', kp)
 
 				prep_kps.append(kp)
+
+			prep_kps = list(set(prep_kps))
 
 			yield prep_kps # preprocessed / clean version of raw keyphrase list
 
@@ -106,6 +116,12 @@ class Preprocessing():
 			prep_outputs.append(text_out)
 
 		print("prep_outputs[0] : %s"%(prep_outputs[0]))
+		sys.stdout.flush()
+
+		print("prep_outputs[1] : %s"%(prep_outputs[1]))
+		sys.stdout.flush()
+
+		print("prep_outputs[2] : %s"%(prep_outputs[2]))
 		sys.stdout.flush()
 
 		return prep_outputs
@@ -121,8 +137,14 @@ class Preprocessing():
 			tokens = []
 			# discard tokens which len is < 2 and >= 20
 			for t in tokens_:
-				if len(t) > 1 and len(t) < 20:
-					t = sno.stem(t)
+
+				regex = re.compile('[%s]' % re.escape(self.kp_punct))
+				t = regex.sub('', t)
+				### no stemming
+				#t = sno.stem(t)
+
+				if (len(t) > 1) and (len(t) < 20):
+					
 					tokens.append(t)
 
 			yield tokens
@@ -149,12 +171,23 @@ class Preprocessing():
 			for kp in kps:
 				kp_tokens = kp.split()
 				tokens = []
-				# discard tokens which len is < 2 and >= 20
-				for t in kp_tokens:
-					if len(t) > 1 and len(t) < 20:
-						t = sno.stem(t)
-						tokens.append(t)
-				token_kps.append(tokens)
+				# only store N-grams of keyphrase, which N < 7.
+				# if >> mostly noises
+
+				if (len(kp_tokens) >= 1) and (len(kp_tokens) < 10):
+					# discard tokens which character len is < 2 and >= 20
+					for t in kp_tokens:
+
+						regex = re.compile('[%s]' % re.escape(self.kp_punct))
+						t = regex.sub('', t)
+						### no stemming
+						#t = sno.stem(t)
+						if(len(t) != 0):
+							if len(t) > 1 and len(t) < 20:
+								tokens.append(t)
+
+				if(len(tokens) != 0):
+					token_kps.append(tokens)
 
 			yield token_kps
 
@@ -196,6 +229,80 @@ class Preprocessing():
 			all_tokens.extend(tokens)
 
 		return all_tokens
+
+
+	def split_sent_generator(self):
+
+		for text_in in self.inputs_tokens:
+
+			text_in = re.sub(r'https?:\/\/\S+\b|www\.(\w+\.)+\S*', '<URL>', text_in)
+			text_in = re.sub(r'/', ' / ', text_in) # Force splitting words appended with slashes (once we tokenized the URLs, of course)
+			text_in = re.sub(r'@\w+', '<USER>', text_in)
+			text_in = re.sub(r'[-+]?[.\d]*[\d]+[:,.\d]*', ' ', text_in) # eliminate numbers
+			text_in = re.sub(r'([!?.]){2,}', r'\1 <REPEAT>', text_in) # Mark punctuation repetitions (eg. "!!!" => "! <REPEAT>")
+			text_in = re.sub(r'[^\x00-\x7f]', ' ', text_in) # encoded characters
+			punct_list = str.maketrans({key: None for key in self.input_punct})
+			text_in = text_in.translate(punct_list)
+			text_in = text_in.replace('\n', ' ')
+			text_in = text_in.lstrip().rstrip()
+			text_in = text_in.lower()
+
+			# split into sentences 
+
+			sents = re.split(r'(?<!\w\.\,\w.,)(?<![A-Z][a-z]\.\,)(?<=\.|\,|\?)\s', text_in)
+
+
+			yield sents
+
+	def split_sent(self, input_text=None):
+
+		self.inputs_tokens = input_text
+		doc_sents = []
+		for sents in self.split_sent_generator():
+			doc_sents.append(sents)
+
+		print("doc_sents[0]: %s"%doc_sents[0])
+
+		return doc_sents
+
+
+	def tokenized_sent_generator(self):
+
+		for doc in self.inputs_tokens:
+			sent_tokens = []
+			for sent in doc:
+				tokens = sent.split()
+				tokens_ = []
+				if len(tokens) > 3:
+					for t in tokens:
+						regex = re.compile('[%s]' % re.escape(self.kp_punct))
+						t = regex.sub('', t)
+
+						### no stemming
+						#t = sno.stem(t)
+						if (len(t) > 1) and (len(t) < 20):
+							tokens_.append(t)
+				if (len(tokens_) != 0):
+					sent_tokens.append(tokens_)
+			yield sent_tokens
+
+
+	def tokenized_sent(self, input_text=None):
+
+		self.inputs_tokens = input_text
+
+		tokenized_docs = []
+		for tokenized_sent in self.tokenized_sent_generator():
+			tokenized_docs.append(tokenized_sent)
+
+		print("tokenized_docs[0]: %s"%tokenized_docs[0])
+
+		return tokenized_docs
+
+
+
+
+
 
 
 
