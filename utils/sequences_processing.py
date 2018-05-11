@@ -230,6 +230,32 @@ class SequenceProcessing():
 
 				yield docid_pair, y_pair_in, y_pair_out
 
+	'''
+	Do padding after pairing sequences into one text sequence and one target sequence
+	'''
+	def pad_sequences(self, max_len_enc, max_len_dec, in_enc_sequences, in_dec_sequences, out_dec_sequences):
+
+		x = (np.ones((len(in_enc_sequences), max_len_enc)) * 0.).astype('int32')
+		y_in = (np.ones((len(in_dec_sequences), max_len_dec+1)) * 0.).astype('int32')
+		y_out = (np.ones((len(out_dec_sequences), max_len_dec+1)) * 0.).astype('int32')
+
+		for idx in range(len(in_enc_sequences)):
+
+			seq_enc_in = in_enc_sequences[idx]
+			seq_enc_in = seq_enc_in[:max_len_enc]
+
+			seq_dec_in = in_dec_sequences[idx]
+			seq_dec_in = seq_dec_in[:max_len_dec+1]
+
+			seq_dec_out = out_dec_sequences[idx]
+			seq_dec_out = seq_dec_out[:max_len_dec+1]
+
+			x[idx,:len(seq_enc_in)] = seq_enc_in
+			y_in[idx,:len(seq_dec_in)] = seq_dec_in
+			y_out[idx,:len(seq_dec_out)] = seq_dec_out
+
+		return x, y_in, y_out
+
 	def compute_presence_gen(self):
 
 
