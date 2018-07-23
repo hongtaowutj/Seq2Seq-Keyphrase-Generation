@@ -24,22 +24,28 @@ import matplotlib.pyplot as plt
 class Indexing():
 
     # input here is individual text
-    def __init__(self, word_tokens, filepath):
+    def __init__(self):
+
+        self.word_tokens = []
+        self.filepath = ""
+        self.filename = ""
+        self.indices_words = {}
+        self.words_indices = {}
+        self.term_freq = {}
+       
+    def vocabulary_indexing(self, word_tokens):
 
         self.word_tokens = word_tokens
-        self.filepath = filepath
-        self.indices_words = []
-        self.words_indices = []
-        self.term_freq = []
-       
-    def vocabulary_indexing(self):
 
-        self.term_freq = nltk.FreqDist(self.word_tokens)
-        wordIndex = list(self.term_freq.keys())
+        term_freq = nltk.FreqDist(word_tokens)
+        self.term_freq = term_freq
+
+        wordIndex = list(term_freq.keys())
         wordIndex.insert(0,'<pad>')
         wordIndex.append('<start>')
         wordIndex.append('<end>')
         wordIndex.append('<unk>')
+
         # indexing word vocabulary : pairs of (index,word)
         vocab=dict([(i,wordIndex[i]) for i in range(len(wordIndex))])
         self.indices_words = vocab
@@ -86,3 +92,47 @@ class Indexing():
         saving_pickles(self.indices_words, os.path.join(self.filepath,'indices_words.pkl'))
         saving_pickles(self.words_indices, os.path.join(self.filepath,'words_indices.pkl'))
         saving_pickles(self.term_freq, os.path.join(self.filepath,'term_freq.pkl'))
+
+    def save_(self, data, filename, filepath):
+
+
+        f = open(os.path.join(filepath, filename), 'wb')
+        cPickle.dump(data, f)
+        f.close()
+
+        print(" file saved to: %s"%(os.path.join(filepath, filename)))
+
+   
+        
+
+    def sampling_table(self, size, sampling_factor=1e-5):
+
+        """
+
+        Generates a word rank-based probabilistic sampling table.
+        Used for generating the `sampling_table` argument for `skipgrams`.
+        `sampling_table[i]` is the probability of sampling
+        the word i-th most common word in a dataset
+        (more common words should be sampled less frequently, for balance).
+        The sampling probabilities are generated according
+        to the sampling distribution used in word2vec:
+        `p(word) = min(1, sqrt(word_frequency / sampling_factor) / (word_frequency / sampling_factor))`
+        We assume that the word frequencies follow Zipf's law (s=1) to derive
+        a numerical approximation of frequency(rank):
+        `frequency(rank) ~ 1/(rank * (log(rank) + gamma) + 1/2 - 1/(12*rank))`
+        where `gamma` is the Euler-Mascheroni constant.
+
+        # Arguments
+            size: Int, number of possible words to sample.
+            sampling_factor: The sampling factor in the word2vec formula.
+        # Returns
+            A 1D Numpy array of length `size` where the ith entry
+            is the probability that a word of rank i should be sampled.
+        """
+
+        gamma = 0.577
+        rank = np.arange(1, size)
+        inv_fq = rank * (np.log(rank) + gamma) + 0.5 - 1. / (12. * rank)
+        f = sampling_factor * inv_fq
+
+        return np.minimum(1., f / np.sqrt(f))

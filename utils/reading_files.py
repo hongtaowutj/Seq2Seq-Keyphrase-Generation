@@ -116,16 +116,17 @@ class ReadingFiles():
 
         def cleaning(text):
 
-            text = re.sub(r'https?:\/\/\S+\b|www\.(\w+\.)+\S*', '<URL>', text)
+            text = re.sub(r'https?:\/\/\S+\b|[www\.]?(\w+\.\w+)+\S*', '<URL>', text)
             text = re.sub(r'/', ' / ', text) # Force splitting words appended with slashes (once we tokenized the URLs, of course)
             text = re.sub(r'@\w+', '<USER>', text)
-            text = re.sub(r'[-+]?[.\d]*[\d]+[:,.\d]*', "", text) # eliminate numbers
+            text = re.sub(r'[-+]?[.\d]*[\d]+[:,.\d]*', " ", text) # eliminate numbers
             text = re.sub(r'([!?.]){2,}', r'\1 <REPEAT>', text) # Mark punctuation repetitions (eg. "!!!" => "! <REPEAT>")
-            text = re.sub(r'[^\x00-\x7f]', '', text) # encoded characters
+            text = re.sub(r'[^\x00-\x7f]', ' ', text) # encoded characters
             punct_list = str.maketrans({key: None for key in self.input_punct})
             text = text.translate(punct_list)
-            text = re.sub(r'[\-\_\.\?]+\ *', ' ', text)
-            text = text.replace('\n', '')
+            #text = re.sub(r'[\-\_\.\?]+\ *', ' ', text)
+            text = re.sub(r'[\-\_]+\ *', ' ', text)
+            text = text.replace('\n', ' ')
             text = text.lstrip().rstrip()
             text = text.lower()
             
@@ -170,16 +171,17 @@ class ReadingFiles():
 
         def cleaning(text):
 
-            text = re.sub(r'https?:\/\/\S+\b|www\.(\w+\.)+\S*', '<URL>', text)
+            text = re.sub(r'https?:\/\/\S+\b|[www\.]?(\w+\.\w+)+\S*', '<URL>', text)
             text = re.sub(r'/', ' / ', text) # Force splitting words appended with slashes (once we tokenized the URLs, of course)
             text = re.sub(r'@\w+', '<USER>', text)
-            text = re.sub(r'[-+]?[.\d]*[\d]+[:,.\d]*', "", text) # eliminate numbers
+            text = re.sub(r'[-+]?[.\d]*[\d]+[:,.\d]*', " ", text) # eliminate numbers
             text = re.sub(r'([!?.]){2,}', r'\1 <REPEAT>', text) # Mark punctuation repetitions (eg. "!!!" => "! <REPEAT>")
-            text = re.sub(r'[^\x00-\x7f]', '', text) # encoded characters
+            text = re.sub(r'[^\x00-\x7f]', ' ', text) # encoded characters
             punct_list = str.maketrans({key: None for key in self.input_punct})
             text = text.translate(punct_list)
-            text = re.sub(r'[\-\_\.\?]+\ *', ' ', text)
-            text = text.replace('\n', '')
+            #text = re.sub(r'[\-\_\.\?]+\ *', ' ', text)
+            text = re.sub(r'[\-\_]+\ *', ' ', text)
+            text = text.replace('\n', ' ')
             text = text.lstrip().rstrip()
             text = text.lower()
             
@@ -284,16 +286,17 @@ class ReadingFiles():
 
         def cleaning(text):
 
-            text = re.sub(r'https?:\/\/\S+\b|www\.(\w+\.)+\S*', '<URL>', text)
+            text = re.sub(r'https?:\/\/\S+\b|[www\.]?(\w+\.\w+)+\S*', '<URL>', text)
             text = re.sub(r'/', ' / ', text) # Force splitting words appended with slashes (once we tokenized the URLs, of course)
             text = re.sub(r'@\w+', '<USER>', text)
-            text = re.sub(r'[-+]?[.\d]*[\d]+[:,.\d]*', "", text) # eliminate numbers
+            text = re.sub(r'[-+]?[.\d]*[\d]+[:,.\d]*', " ", text) # eliminate numbers
             text = re.sub(r'([!?.]){2,}', r'\1 <REPEAT>', text) # Mark punctuation repetitions (eg. "!!!" => "! <REPEAT>")
-            text = re.sub(r'[^\x00-\x7f]', '', text) # encoded characters
+            text = re.sub(r'[^\x00-\x7f]', ' ', text) # encoded characters
             punct_list = str.maketrans({key: None for key in self.input_punct})
             text = text.translate(punct_list)
-            text = re.sub(r'[\-\_\.\?]+\ *', ' ', text)
-            text = text.replace('\n', '')
+            #text = re.sub(r'[\-\_\.\?]+\ *', ' ', text)
+            text = re.sub(r'[\-\_]+\ *', ' ', text)
+            text = text.replace('\n', ' ')
             text = text.lstrip().rstrip()
             text = text.lower()
             
@@ -418,16 +421,17 @@ class ReadingFiles():
 
         def cleaning(text):
 
-            text = re.sub(r'https?:\/\/\S+\b|www\.(\w+\.)+\S*', '<URL>', text)
+            text = re.sub(r'https?:\/\/\S+\b|[www\.]?(\w+\.\w+)+\S*', '<URL>', text)
             text = re.sub(r'/', ' / ', text) # Force splitting words appended with slashes (once we tokenized the URLs, of course)
             text = re.sub(r'@\w+', '<USER>', text)
-            text = re.sub(r'[-+]?[.\d]*[\d]+[:,.\d]*', "", text) # eliminate numbers
+            text = re.sub(r'[-+]?[.\d]*[\d]+[:,.\d]*', " ", text) # eliminate numbers
             text = re.sub(r'([!?.]){2,}', r'\1 <REPEAT>', text) # Mark punctuation repetitions (eg. "!!!" => "! <REPEAT>")
-            text = re.sub(r'[^\x00-\x7f]', '', text) # encoded characters
+            text = re.sub(r'[^\x00-\x7f]', ' ', text) # encoded characters
             punct_list = str.maketrans({key: None for key in self.input_punct})
             text = text.translate(punct_list)
-            text = re.sub(r'[\-\_\.\?]+\ *', ' ', text)
-            text = text.replace('\n', '')
+            #text = re.sub(r'[\-\_\.\?]+\ *', ' ', text)
+            text = re.sub(r'[\-\_]+\ *', ' ', text)
+            text = text.replace('\n', ' ')
             text = text.lstrip().rstrip()
             text = text.lower()
             
@@ -560,16 +564,17 @@ class ReadingFiles():
 
         def cleaning(text):
 
-            text = re.sub(r'https?:\/\/\S+\b|www\.(\w+\.)+\S*', '<URL>', text)
+            text = re.sub(r'https?:\/\/\S+\b|[www\.]?(\w+\.\w+)+\S*', '<URL>', text)
             text = re.sub(r'/', ' / ', text) # Force splitting words appended with slashes (once we tokenized the URLs, of course)
             text = re.sub(r'@\w+', '<USER>', text)
-            text = re.sub(r'[-+]?[.\d]*[\d]+[:,.\d]*', "", text) # eliminate numbers
+            text = re.sub(r'[-+]?[.\d]*[\d]+[:,.\d]*', " ", text) # eliminate numbers
             text = re.sub(r'([!?.]){2,}', r'\1 <REPEAT>', text) # Mark punctuation repetitions (eg. "!!!" => "! <REPEAT>")
-            text = re.sub(r'[^\x00-\x7f]', '', text) # encoded characters
+            text = re.sub(r'[^\x00-\x7f]', ' ', text) # encoded characters
             punct_list = str.maketrans({key: None for key in self.input_punct})
             text = text.translate(punct_list)
-            text = re.sub(r'[\-\_\.\?]+\ *', ' ', text)
-            text = text.replace('\n', '')
+            #text = re.sub(r'[\-\_\.\?]+\ *', ' ', text)
+            text = re.sub(r'[\-\_]+\ *', ' ', text)
+            text = text.replace('\n', ' ')
             text = text.lstrip().rstrip()
             text = text.lower()
             

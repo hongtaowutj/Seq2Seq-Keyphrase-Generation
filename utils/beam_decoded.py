@@ -25,6 +25,7 @@ class BeamDecoded():
 		self.keyphrases_indices = [] 
 		self.keyphrases_tokens = []
 		self.keyphrases = []
+		self.att_weights = []
 
 
 	def print_hypotheses(self):
@@ -42,6 +43,35 @@ class BeamDecoded():
 			txt = " ".join(generated_keyphrases)
 			print("generated key phrases - %s: %s"%(str(i+1), txt))
 			i += 1
+
+	# retrieve generated key phrases and attention weights
+	def get_(self):
+
+		
+		pred_keyphrases_indices = []
+		pred_keyphrases_tokens = []
+		pred_keyphrases = []
+		att_weights = []
+
+		for hypothesis in self.hypotheses:
+
+			generated_indices = hypothesis.to_sequence_of_values()
+			att_weight = hypothesis.to_sequence_of_extras()
+
+			pred_keyphrases_indices.append(generated_indices)
+			att_weights.append(att_weight)
+
+			generated_keyphrases = [self.indices_words[i] for i in generated_indices]
+			txt = " ".join(generated_keyphrases)
+			pred_keyphrases_tokens.append(generated_keyphrases)
+			pred_keyphrases.append(txt)
+
+		self.keyphrases_indices = pred_keyphrases_indices
+		self.keyphrases_tokens = pred_keyphrases_tokens
+		self.keyphrases = pred_keyphrases
+		self.att_weights = att_weights
+
+		return self.keyphrases_tokens, self.att_weights
 
 	def get_hypotheses(self):
 
@@ -66,3 +96,48 @@ class BeamDecoded():
 		self.keyphrases = pred_keyphrases
 
 		return self.keyphrases_indices, self.keyphrases_tokens, self.keyphrases
+
+	def decript_(self):
+
+				
+		generated_indices = self.hypotheses.to_sequence_of_values()
+		retrieved_idx = [idx for idx in generated_indices]
+
+		generated_keyphrases = [self.indices_words[i] for i in retrieved_idx]
+		text_keyphrases = " ".join(generated_keyphrases)
+
+		return text_keyphrases
+
+	def decript_hypotheses(self):
+
+		start_end_idx = [int(self.words_indices['<start>']), int(self.words_indices['<end>']), int(self.words_indices['<pad>'])]
+		
+		generated_indices = self.hypotheses.to_sequence_of_values()
+		retrieved_idx = [idx for idx in generated_indices if idx not in start_end_idx]
+
+		generated_keyphrases = [self.indices_words[i] for i in retrieved_idx]
+		text_keyphrases = " ".join(generated_keyphrases)
+
+		return text_keyphrases
+
+	 
+
+	def decript_keyphrase_gen(self):
+
+		start_end_idx = [int(self.words_indices['<start>']), int(self.words_indices['<end>']), int(self.words_indices['<pad>'])]
+
+		for doc in self.hypotheses:
+
+			kps = []
+			for keyphrase in doc:
+
+				generated_indices = keyphrase.to_sequence_of_values()
+				retrieved_idx = [idx for idx in generated_indices if idx not in start_end_idx]
+
+				generated_keyphrases = [self.indices_words[i] for i in retrieved_idx]
+				text_keyphrases = " ".join(generated_keyphrases)
+
+				kps.append(text_keyphrases)
+
+			yield kps
+

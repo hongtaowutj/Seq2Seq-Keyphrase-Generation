@@ -24,5 +24,8 @@ class Node(object):
     def to_sequence_of_values(self):
         return [s.value for s in self.to_sequence()]
 
+    def to_sequence_of_probs(self):
+        return [(s.value, s.cum_cost) for s in self.to_sequence()]
+
     def to_sequence_of_extras(self):
         return [s.extras for s in self.to_sequence()]
